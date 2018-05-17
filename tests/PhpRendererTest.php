@@ -1,8 +1,11 @@
 <?php
 
-use View\PhpRenderer;
+namespace View\Tests;
 
-class PhpRendererTest extends PHPUnit_Framework_TestCase
+use View\PhpRenderer;
+use PHPUnit\Framework\TestCase;
+
+class PhpRendererTest extends TestCase
 {
 	public function getRenderer()
 	{
@@ -18,6 +21,14 @@ class PhpRendererTest extends PHPUnit_Framework_TestCase
 	{
 		$view = new PhpRenderer();
 		$view->render('Non existant file');
+	}
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testConstructorOnInvalidPath()
+	{
+		$view = new PhpRenderer(100);
 	}
 
 	public function testPath()
@@ -45,6 +56,25 @@ class PhpRendererTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Hello, Sean!',$view->render($template, ['hello' => 'Sean']));
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testRenderOnNullTemplate()
+	{
+		$view = new PhpRenderer();
+		$view->render(null);
+	}
+
+	public function testRenderOnAddGlobals()
+	{
+		$template = __DIR__.'/templates/hello.php';
+
+		$view = new PhpRenderer();
+		$view->addGlobals(['hello' => 'global']);
+
+		$this->assertEquals('Hello, global!', $view->render($template));	
+	}
+
 	public function testRenderWithGlobals()
 	{
 		$template = __DIR__.'/templates/hello.php';
@@ -54,6 +84,26 @@ class PhpRendererTest extends PHPUnit_Framework_TestCase
 
 		$this->assertEquals('Hello, John!', $view->render($template));
 		$this->assertEquals('Hello, Sean!',$view->render($template, ['hello' => 'Sean']));
+	}
+
+	public function testRenderOnSetGlobal()
+	{
+		$template = __DIR__.'/templates/hello.php';
+
+		$view = new PhpRenderer();
+		$view->setGlobal('hello', 'John');
+
+		$this->assertEquals('Hello, John!', $view->render($template));	
+	}
+
+	public function testSetGlobal()
+	{
+		$template = __DIR__.'/templates/hello.php';
+
+		$view = new PhpRenderer();
+		$view->hello = 'John';
+
+		$this->assertEquals('Hello, John!', $view->render($template));
 	}
 
 	public function testRenderRecursive()
